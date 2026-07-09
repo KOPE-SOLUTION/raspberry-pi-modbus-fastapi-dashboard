@@ -67,12 +67,11 @@ src/
 
 ## Step 1 — ติดตั้ง Python Library
 
-ติดตั้ง `pymodbus`
+ติดตั้ง `python3-pymodbus`
 
 ```sh
 sudo apt update
-sudo apt install python3-pip -y
-pip3 install pymodbus
+sudo apt install python3-pymodbus -y
 ```
 
 <br>
@@ -102,7 +101,7 @@ nano src/modbus_reader.py
 SERIAL_PORT = "/dev/ttyUSB0"
 BAUDRATE = 9600
 SLAVE_ID = 1
-START_REGISTER = 1
+START_REGISTER = 0
 REGISTER_COUNT = 3
 ```
 
@@ -119,7 +118,7 @@ from pymodbus.client import ModbusSerialClient
 SERIAL_PORT = "/dev/ttyUSB0"
 BAUDRATE = 9600
 SLAVE_ID = 1
-START_REGISTER = 1
+START_REGISTER = 0
 REGISTER_COUNT = 3
 
 
@@ -140,7 +139,7 @@ def read_sensor():
         }
 
     try:
-        result = client.read_input_registers(
+        result = client.read_holding_registers(
             address=START_REGISTER,
             count=REGISTER_COUNT,
             slave=SLAVE_ID
@@ -265,7 +264,7 @@ from pymodbus.client import ModbusSerialClient
 SERIAL_PORT = "/dev/ttyUSB0"
 BAUDRATE = 9600
 SLAVE_ID = 1
-START_REGISTER = 1
+START_REGISTER = 0
 REGISTER_COUNT = 3
 
 
@@ -287,7 +286,7 @@ def read_sensor():
         }
 
     try:
-        result = client.read_input_registers(
+        result = client.read_holding_registers(
             address=START_REGISTER,
             count=REGISTER_COUNT,
             slave=SLAVE_ID
@@ -396,7 +395,7 @@ ls -l /dev/ttyUSB*
 ติดตั้งใหม่:
 
 ```bash
-pip3 install pymodbus
+sudo apt install python3-pymodbus -y
 ```
 
 ---

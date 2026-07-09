@@ -4,7 +4,7 @@ from pymodbus.client import ModbusSerialClient
 SERIAL_PORT = "/dev/ttyUSB0"
 BAUDRATE = 9600
 SLAVE_ID = 1
-START_REGISTER = 1
+START_REGISTER = 0
 REGISTER_COUNT = 3
 
 
@@ -26,7 +26,7 @@ def read_sensor():
         }
 
     try:
-        result = client.read_input_registers(
+        result = client.read_holding_registers(
             address=START_REGISTER,
             count=REGISTER_COUNT,
             slave=SLAVE_ID
