@@ -11,6 +11,45 @@
 
 สำหรับงาน Linux Edge Gateway + USB-RS485 + Modbus RTU ที่อ่านค่าทุก 1 วินาที ความต่างระหว่าง Python กับ JavaScript มักไม่ใช่ปัจจัยหลัก เพราะเวลาส่วนใหญ่คือการรออุปกรณ์ตอบกลับผ่าน serial ส่วน Python ใช้เวลาเพียงเล็กน้อยในการจัดรูปข้อมูลเป็น dictionary และส่ง JSON ผ่าน FastAPI
 
+## Why Industrial Linux Gateway
+
+ในงาน Industrial จริง อุปกรณ์ที่เชื่อมต่อผ่าน Modbus RTU ไม่ได้มีแค่ sensor เท่านั้น แต่ยังรวมถึง PLC, Power Meter, Inverter, VFD, Weather Station, Solar Radiation Sensor, Flow Meter, Temperature Controller และอุปกรณ์ภาคสนามอื่น ๆ
+
+แนวทางของโปรเจกต์นี้คือใช้ Linux Gateway เป็นชั้นกลางระหว่างอุปกรณ์ Modbus RTU กับระบบ Software เช่น Web API, Dashboard, MQTT, Database, SCADA, MES หรือ Cloud Platform
+
+Industrial Linux Gateway ไม่ได้มาแทน PLC โดยตรง แต่ทำหน้าที่เสริมในงานที่ PLC ไม่ถนัด เช่น การทำ Web API, Dashboard, Logging, Integration, Data Processing, AI/ML หรือส่งข้อมูลต่อไปยังระบบ IT
+
+| หัวข้อ | PLC | Industrial Linux Gateway |
+| --- | --- | --- |
+| งานควบคุม Real-time | เหมาะมาก | ไม่เหมาะเท่า PLC |
+| ความเสถียรในระบบควบคุม | สูงมาก | ขึ้นกับ hardware, OS และ configuration |
+| อ่าน Modbus / Fieldbus | ทำได้ดี | ทำได้ดี |
+| Web API / Dashboard | ทำได้จำกัด หรือมีค่าใช้จ่ายเพิ่ม | ทำได้ยืดหยุ่น |
+| Database / CSV / Logging | ทำได้ แต่ไม่ใช่จุดแข็งหลัก | เหมาะมาก |
+| MQTT / Cloud / REST API | มักต้องใช้ module หรือ gateway เพิ่ม | ทำได้ง่าย |
+| AI / Computer Vision / Python | ไม่ใช่งานหลัก | เหมาะมาก |
+| Maintenance ด้วย Git | จำกัด | ทำได้ดี |
+
+สรุปคือ PLC เหมาะกับงานควบคุมเครื่องจักรที่ต้องการความ deterministic และปลอดภัยสูง ส่วน Industrial Linux Gateway เหมาะกับงานเชื่อมข้อมูลจากหน้างานขึ้นมาสู่ software layer เช่น API, Dashboard, Database, MQTT, Cloud หรือ AI
+
+ดังนั้นโปรเจกต์นี้ไม่ได้บอกว่า Linux ดีกว่า PLC แต่เป็นการแสดงบทบาทของ Linux Gateway ในฐานะ data gateway / edge gateway ที่ทำงานร่วมกับ PLC และอุปกรณ์ Modbus อื่น ๆ ได้
+
+ข้อดีของ Industrial Linux Gateway:
+
+- ใช้ Python, FastAPI, Node-RED, MQTT, SQLite, PostgreSQL หรือ InfluxDB ได้
+- ทำ Dashboard และ Web API ได้ยืดหยุ่น
+- เชื่อม Cloud หรือระบบ IT ได้ง่าย
+- ใช้ Git version control ได้ดี
+- ต่อยอด AI/ML/Computer Vision ได้ในอนาคต
+- เลือก hardware ได้หลายระดับ ตั้งแต่ Raspberry Pi, Orange Pi, Linux SBC ไปจนถึง Industrial Mini PC
+
+ข้อควรระวัง:
+
+- ไม่ควรใช้แทน PLC ในงาน control critical
+- ต้องดูเรื่องไฟตก, reboot, watchdog และการ start service หลัง boot
+- ต้องจัดการ permission, security และ network ให้เหมาะสม
+- ถ้าใช้ Raspberry Pi ต้องระวัง SD card wear เมื่อมีการเขียน log หรือ database ตลอดเวลา
+- งาน real-time ระดับ millisecond ไม่ใช่จุดแข็งของ Linux gateway ทั่วไป
 ## Python + FastAPI vs Node-RED
 
 | หัวข้อ | Python + FastAPI | Node-RED |
