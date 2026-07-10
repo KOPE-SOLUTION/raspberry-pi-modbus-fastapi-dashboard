@@ -51,13 +51,46 @@ GET /api/plc
 
 มุมมองของซีรีส์นี้จึงไม่ใช่แค่ทำ dashboard ให้ดูค่า sensor ได้ แต่เป็นการวางรากฐานสำหรับ Python Industrial IoT Framework ที่สามารถนำไปใช้ซ้ำกับอุปกรณ์ Modbus RTU หลายชนิดได้ในอนาคต
 
+## Adapting to Other Modbus Sensors
+
+ตัวอย่างใน repo นี้ใช้เซ็นเซอร์ที่อ่านค่าได้ 3 พารามิเตอร์ คือ PM1.0, PM2.5 และ PM10 จึงตั้งค่า `REGISTER_COUNT = 3` และ map ค่าเป็น `pm1_0`, `pm2_5`, `pm10`
+
+ถ้าอุปกรณ์ของคุณมีเพียง 1 พารามิเตอร์ หรือมีมากกว่า 3 พารามิเตอร์ ให้ดูจาก Datasheet หรือ Modbus Register Map ของอุปกรณ์นั้นก่อน โดยต้องตรวจสอบอย่างน้อย 4 จุดนี้:
+
+| สิ่งที่ต้องดู | นำไปปรับที่ไหน |
+| --- | --- |
+| Modbus Address / Slave ID | `SLAVE_ID` ใน `src/modbus_reader.py` |
+| Function Code เช่น FC03 หรือ FC04 | ใช้ `read_holding_registers()` หรือ `read_input_registers()` |
+| Start Register | `START_REGISTER` ใน `src/modbus_reader.py` |
+| จำนวน Register ที่ต้องอ่าน | `REGISTER_COUNT` และการ map `registers[index]` |
+
+เช่น ถ้าอุปกรณ์มีค่าเดียว อาจใช้ `REGISTER_COUNT = 1` และส่ง JSON แค่ field เดียว เช่น `value` หรือ `temperature` จากนั้นค่อยปรับ API response และหน้า Dashboard ให้แสดง field นั้นแทนตัวอย่าง PM1.0/PM2.5/PM10
+ตัวอย่างเช่น ถ้าต้องเพิ่ม Solar Radiation Sensor ให้เริ่มจากดู Datasheet ว่าค่ารังสีแสงอาทิตย์อยู่ที่ Register ใด ใช้หน่วยอะไร เช่น W/m2 ต้องอ่านกี่ Register และมี scale factor หรือไม่ จากนั้นปรับ `modbus_reader.py` ให้ map ค่าออกมาเป็น field ใหม่ เช่น `solar_radiation`
+
+```py
+REGISTER_COUNT = 1
+
+return {
+    "status": "ok",
+    "solar_radiation": registers[0],
+    "timestamp": int(time.time())
+}
+```
+
+ถ้า Datasheet ระบุว่าค่าที่อ่านได้ต้องหาร 10 ให้แปลงก่อนส่งออก:
+
+```py
+solar_radiation = registers[0] / 10
+```
+
+หลังจากนั้นจึงปรับหน้า Dashboard ให้แสดง `data.solar_radiation` แทน field ของเซ็นเซอร์ตัวอย่างเดิม
 ## How to Use This Series
 
 ซีรีส์นี้เป็น project-based series ที่เน้นทำระบบให้รันได้จริงก่อน โดยในบางช่วงจะใช้วิธีคัดลอกโค้ดตัวอย่างไปวาง เพื่อให้เห็น workflow ของระบบตั้งแต่ Modbus Reader, FastAPI API, HTML Dashboard, systemd และ Podman ได้ต่อเนื่องตั้งแต่ต้นจนจบ
 
 ดังนั้นในซีรีส์นี้จะไม่ได้อธิบายโค้ดทุกบรรทัดแบบคอร์ส syntax แต่จะอธิบายภาพรวมว่าแต่ละไฟล์ทำหน้าที่อะไร ข้อมูลไหลจาก sensor ไปถึง browser อย่างไร และต้องตรวจสอบจุดไหนเมื่อระบบไม่ทำงาน
 
-หลังจากซีรีส์นี้ สามารถแยกทำซีรีส์พื้นฐานเพิ่มเติมได้ เช่น HTML, CSS, JavaScript, Python, FastAPI, systemd และ Podman เพื่ออธิบายรายละเอียดของแต่ละเทคโนโลยีให้ลึกขึ้นทีละส่วน
+หลังจากซีรีส์นี้ ผมจะทยอยแยกทำซีรีส์พื้นฐานเพิ่มเติม มานำเสนอภายหลัง เช่น HTML, CSS, JavaScript, Python, FastAPI, systemd และ Podman เพื่ออธิบายรายละเอียดของแต่ละเทคโนโลยีให้ลึกขึ้นทีละส่วน
 
 ## Series Content
 

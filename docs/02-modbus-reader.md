@@ -231,6 +231,152 @@ data = {
 
 ---
 
+## ถ้า Sensor มีจำนวน Parameter ไม่เท่ากับตัวอย่าง
+
+ตัวอย่างใน EP นี้อ่าน 3 Register เพราะอุปกรณ์ตัวอย่างมี 3 ค่า คือ PM1.0, PM2.5 และ PM10
+
+```py
+REGISTER_COUNT = 3
+```
+
+และนำค่าจาก `registers` มา map แบบนี้:
+
+```py
+return {
+    "status": "ok",
+    "pm1_0": registers[0],
+    "pm2_5": registers[1],
+    "pm10": registers[2],
+    "timestamp": int(time.time())
+}
+```
+
+ถ้า Sensor ของคุณมีเพียง 1 ค่า เช่น temperature ให้ปรับเป็น:
+
+```py
+REGISTER_COUNT = 1
+```
+
+แล้ว map ค่าเดียว:
+
+```py
+return {
+    "status": "ok",
+    "temperature": registers[0],
+    "timestamp": int(time.time())
+}
+```
+
+ถ้า Sensor มี 2 ค่า เช่น temperature และ humidity ให้ใช้:
+
+```py
+REGISTER_COUNT = 2
+```
+
+แล้ว map ตามลำดับ Register:
+
+```py
+return {
+    "status": "ok",
+    "temperature": registers[0],
+    "humidity": registers[1],
+    "timestamp": int(time.time())
+}
+```
+
+จุดสำคัญคือต้องดู Datasheet หรือ Modbus Register Map ของอุปกรณ์จริงก่อนเสมอ โดยดูว่าแต่ละค่าถูกเก็บอยู่ที่ Register ใด ใช้ Function Code 03 หรือ 04 และค่าที่อ่านได้ต้องหาร scale หรือไม่ เช่น บางอุปกรณ์เก็บ `253` เพื่อแทน `25.3` องศา แบบนี้ต้องแปลงค่าก่อนส่งออกเป็น JSON
+
+ตัวอย่างการแปลง scale:
+
+```py
+temperature = registers[0] / 10
+```
+
+ถ้าเปลี่ยนชื่อ field ใน `modbus_reader.py` แล้ว ใน EP4 ต้องเปลี่ยน HTML และ JavaScript ให้ตรงกันด้วย เช่น ถ้า API ส่ง `temperature` หน้า Dashboard ก็ต้องใช้ `data.temperature` แทน `data.pm2_5`
+### ตัวอย่าง: เพิ่ม Solar Radiation Sensor
+
+สมมติว่าเราต้องการเปลี่ยนจากเซ็นเซอร์ฝุ่น มาอ่าน Solar Radiation Sensor ผ่าน Modbus RTU ขั้นตอนที่ควรทำคือ:
+
+1. เปิด Datasheet หรือ Modbus Register Map ของ Solar Radiation Sensor
+2. ดูว่าอุปกรณ์ใช้ Slave ID เท่าไร เช่น `1`
+3. ดูว่าใช้ Function Code ใด เช่น FC04 หรือ FC03
+4. ดูว่า Solar Radiation อยู่ที่ Register ใด เช่น Register 1
+5. ดูว่าต้องอ่านกี่ Register เช่น 1 Register
+6. ดูว่าค่าที่อ่านได้ต้องหาร scale หรือไม่ เช่น หาร 10
+
+ถ้า Register Map ระบุประมาณนี้:
+
+| Parameter | Function Code | Register | Count | Scale | Unit |
+| --- | --- | ---: | ---: | ---: | --- |
+| Solar Radiation | FC04 | 1 | 1 | 1 | W/m2 |
+
+ให้ทดสอบด้วย `mbpoll` ก่อน:
+
+```bash
+mbpoll -m rtu -b 9600 -P none -a 1 -t 4 -r 1 -c 1 /dev/ttyUSB0
+```
+
+ถ้าอ่านได้ เช่น:
+
+```text
+[1]: 756
+```
+
+แปลว่าเราสามารถปรับ `modbus_reader.py` ได้ประมาณนี้:
+
+```py
+SERIAL_PORT = "/dev/ttyUSB0"
+BAUDRATE = 9600
+SLAVE_ID = 1
+START_REGISTER = 0
+REGISTER_COUNT = 1
+```
+
+แล้วเปลี่ยนส่วน return เป็น:
+
+```py
+return {
+    "status": "ok",
+    "solar_radiation": registers[0],
+    "timestamp": int(time.time())
+}
+```
+
+ถ้า Datasheet ระบุ scale เป็น 0.1 หรือบอกว่าค่าจริง = register / 10 ให้เขียนแบบนี้:
+
+```py
+solar_radiation = registers[0] / 10
+
+return {
+    "status": "ok",
+    "solar_radiation": solar_radiation,
+    "timestamp": int(time.time())
+}
+```
+
+หลังจากเปลี่ยน `modbus_reader.py` แล้ว ให้ทดสอบก่อน:
+
+```bash
+python src/modbus_reader.py
+```
+
+ควรได้ผลลัพธ์ประมาณนี้:
+
+```python
+{'status': 'ok', 'solar_radiation': 756, 'timestamp': 1783650000}
+```
+
+จากนั้นใน EP4 ให้แก้หน้า Dashboard จาก `pm1_0`, `pm2_5`, `pm10` เป็น field ใหม่ เช่น `solar_radiation` และแก้ JavaScript จาก:
+
+```js
+document.getElementById("pm2_5").textContent = data.pm2_5;
+```
+
+เป็น:
+
+```js
+document.getElementById("solar_radiation").textContent = data.solar_radiation;
+```
 ## Step 7 — เพิ่ม Timestamp
 
 แก้ไขโค้ดโดยเพิ่ม `time`
