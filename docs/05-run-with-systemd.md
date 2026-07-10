@@ -348,6 +348,46 @@ sudo systemctl restart modbus-dashboard.service
 
 ---
 
+## Uninstall / Cleanup
+
+ถ้าต้องการถอด service แบบ `systemd + .venv` ออกจากเครื่อง ให้หยุด service และปิดการรันตอน boot ก่อน:
+
+```bash
+sudo systemctl stop modbus-dashboard.service
+sudo systemctl disable modbus-dashboard.service
+```
+
+จากนั้นลบไฟล์ service และ reload systemd:
+
+```bash
+sudo rm /etc/systemd/system/modbus-dashboard.service
+sudo systemctl daemon-reload
+sudo systemctl reset-failed
+```
+
+ตรวจสอบว่า service ไม่อยู่แล้ว:
+
+```bash
+sudo systemctl status modbus-dashboard.service
+```
+
+ถ้าต้องการลบโฟลเดอร์โปรเจกต์และ `.venv` ด้วย ให้ตรวจสอบตำแหน่งก่อน:
+
+```bash
+pwd
+ls -l /home/pi0001
+```
+
+เมื่อตรวจสอบแน่ใจแล้วว่า path ถูกต้อง จึงค่อยลบ:
+
+```bash
+cd /home/pi0001
+rm -rf industrial-linux-modbus-fastapi-dashboard
+```
+
+> หมายเหตุ: ถ้าเครื่องของคุณใช้ user อื่น เช่น `pi` หรือ `ubuntu` ให้เปลี่ยน `/home/pi0001` ให้ตรงกับเครื่องจริงก่อนรันคำสั่งลบ
+
+---
 ## สรุป EP5
 
 ใน EP นี้เราเปลี่ยนจากการรัน `uvicorn` ด้วยมือ มาเป็นให้ `systemd` จัดการแทน โดยยังรันจาก `.venv` บนเครื่อง Linux โดยตรง

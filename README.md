@@ -84,6 +84,7 @@ solar_radiation = registers[0] / 10
 ```
 
 หลังจากนั้นจึงปรับหน้า Dashboard ให้แสดง `data.solar_radiation` แทน field ของเซ็นเซอร์ตัวอย่างเดิม
+
 ## How to Use This Series
 
 ซีรีส์นี้เป็น project-based series ที่เน้นทำระบบให้รันได้จริงก่อน โดยในบางช่วงจะใช้วิธีคัดลอกโค้ดตัวอย่างไปวาง เพื่อให้เห็น workflow ของระบบตั้งแต่ Modbus Reader, FastAPI API, HTML Dashboard, systemd และ Podman ได้ต่อเนื่องตั้งแต่ต้นจนจบ
@@ -132,6 +133,14 @@ source .venv/bin/activate
 pip install pyserial pymodbus fastapi uvicorn
 ```
 
+## Uninstall / Cleanup
+
+ถ้าไม่ต้องการใช้งานแล้ว ให้ถอดตามวิธี deployment ที่เลือกไว้:
+
+- ถ้าใช้ EP5 แบบ `systemd + .venv` ให้ดูหัวข้อ Uninstall / Cleanup ใน [EP5](docs/05-run-with-systemd.md)
+- ถ้าใช้ EP6 แบบ `Podman + Quadlet` ให้ดูหัวข้อ Uninstall / Cleanup ใน [EP6](docs/06-podman-deployment.md)
+
+ก่อนลบโฟลเดอร์โปรเจกต์ ให้ตรวจสอบ path ให้ถูกต้องก่อนเสมอ เพราะคำสั่งลบโฟลเดอร์ไม่สามารถย้อนกลับได้ง่าย
 ## Documentation
 
 - [EP1: Setup and Scan Modbus](docs/01-setup-and-scan-modbus.md)

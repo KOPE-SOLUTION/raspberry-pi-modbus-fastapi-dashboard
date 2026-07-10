@@ -336,6 +336,62 @@ ls -l /dev/ttyUSB0
 
 ---
 
+## Uninstall / Cleanup
+
+ถ้าใช้ Podman + Quadlet ให้หยุด service ก่อน:
+
+```bash
+sudo systemctl stop modbus-dashboard.service
+```
+
+ลบไฟล์ Quadlet แล้ว reload systemd:
+
+```bash
+sudo rm /etc/containers/systemd/modbus-dashboard.container
+sudo systemctl daemon-reload
+sudo systemctl reset-failed
+```
+
+ลบ container และ image ที่สร้างไว้:
+
+```bash
+sudo podman rm -f modbus-dashboard
+sudo podman rmi localhost/modbus-dashboard:latest
+```
+
+ถ้าเคยรันด้วย `podman run` แบบ manual และไม่ได้ใช้ Quadlet ให้ใช้ชุดนี้แทน:
+
+```bash
+sudo podman stop modbus-dashboard
+sudo podman rm modbus-dashboard
+sudo podman rmi modbus-dashboard:latest
+```
+
+ตรวจสอบว่าลบออกแล้ว:
+
+```bash
+sudo podman ps -a
+sudo podman images
+sudo systemctl status modbus-dashboard.service
+```
+
+ถ้าต้องการลบโฟลเดอร์โปรเจกต์ด้วย ให้ตรวจสอบ path ก่อนเสมอ:
+
+```bash
+pwd
+ls -l /home/pi0001
+```
+
+เมื่อตรวจสอบแน่ใจแล้วว่า path ถูกต้อง จึงค่อยลบ:
+
+```bash
+cd /home/pi0001
+rm -rf industrial-linux-modbus-fastapi-dashboard
+```
+
+> หมายเหตุ: ถ้าใช้ Raspberry Pi OS หรือ Ubuntu path อาจเป็น `/home/pi/...` หรือ `/home/ubuntu/...` ให้เปลี่ยน path ให้ตรงกับเครื่องจริงก่อนรันคำสั่งลบ
+
+---
 ## EP5 หรือ EP6 ควรเลือกอะไร
 
 ไม่จำเป็นต้องใช้ทั้งสองแบบพร้อมกัน ให้เลือกวิธีใดวิธีหนึ่งตามเป้าหมายของงาน
